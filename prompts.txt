@@ -1,0 +1,23 @@
+I want you to make this website be a HIIT interval timer, it will be simple, have 3 fields: SETS, WORK, REST and a Start workout button that will have on the right side, inside, the total time the workout will take like: 4 SETS, 30s WORK, 2m REST => 08:00
+
+When it starts the first 10s will be preparing, then WORK, then REST, the looping back at WORK, etc.
+
+The SETS, WORK, REST, will have an - and + buttons to change the values, for the WORK, REST will be a -, + 5s intervals
+
+Make the UI for the phone in mind, using shadcn and taillwind, you can install any shadcn component you need using bun.
+
+
+I want the UI for when the Timer started to be different, In the middle the time ticking down for ether 10s preparing, WORK or REST, right on top of it the SETS 1/4. On top of the screen left an X button, middle the REMAINING time, and at the bottom of the screen 3 buttons: << for going back like if it's 24s left from WORK as a example it will reset it back to 30s and if it's under 5s elapsed like 26s left from WORK it will go back on set to ether REST or preparing, then in the middle a Pause/Resume button, and on the right a >> button.
+
+Good, now remove the unnecessary parts from the setting up UI, like the reset button, current phase, Ready status, Time left.
+
+Make the background be green when it's Work and make a shade of brighter green that is filling up the background from bottom to top as the timer is ended based on the % is done, like when Work is 30s the 0% and when is 0s is 100%, and make the background filling to be smooth to not view the steps every second when the % changes.
+Make all the UI be dark theme and add a filling bg animation for REST also.
+
+Change the filling color animation for REST to not be green and fix the UI positioning for the buttons in the "Timer started" UI to take all the page.
+img, as you can see the UI does not take all the screen
+
+When is 5s or lower, for every second and say the text using the browser text-to-speech like: 5,4,3,2,1,Work ... 5,4,3,2,1,Rest, ... etc
+Add at end of it all, "Great work!" message being read by TTS.
+
+Make the middle button Pause/Resume take more space the rest of the buttons there. And make the X button more visible.

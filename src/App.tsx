@@ -305,16 +305,13 @@ const RunningView = ({
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6">
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">Set {Math.min(currentSet, sets)} / {sets}</p>
-          <p className="mt-1 text-3xl font-semibold tracking-tight">{label}</p>
+          <p className="mt-1 text-3xl font-semibold tracking-tight">{label} {Math.min(currentSet, sets)}/{sets}</p>
         </div>
         <div className="relative w-full max-w-xs">
           <div className="rounded-3xl border border-emerald-100 bg-white/80 p-10 text-center shadow-lg shadow-emerald-100/40 backdrop-blur dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:shadow-emerald-900/40">
-            <p className="text-sm text-muted-foreground">Time</p>
             <p className="mt-2 text-6xl font-bold tabular-nums tracking-tight">{formatSeconds(remaining)}</p>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">Use rewind/skip to adjust phases on the fly.</p>
       </div>
 
       <div className="mt-auto grid grid-cols-5 items-center gap-3">
