@@ -39,22 +39,32 @@ function useHiitTimer() {
     window.speechSynthesis.speak(utterance);
   }, []);
 
-  const start = () => {
+  const historyPushed = useRef(false);
+
+  const start = useCallback(() => {
     setPhase("prepare");
     setRemaining(PREP_SECONDS);
     setCurrentSet(1);
     setIsRunning(true);
     setIsPaused(false);
     speak("Prepare");
-  };
+  }, [speak]);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setPhase("idle");
     setRemaining(0);
     setCurrentSet(1);
     setIsRunning(false);
     setIsPaused(false);
-  };
+    lastSpoken.current = null;
+    lastAnnouncedPhase.current = null;
+    if (historyPushed.current && typeof window !== "undefined") {
+      historyPushed.current = false;
+      history.back(); // remove the in-app entry so browser back exits
+    } else if (typeof window !== "undefined") {
+      history.replaceState(null, "", window.location.pathname + window.location.search + window.location.hash);
+    }
+  }, []);
 
   const goNext = useCallback(() => {
     if (phase === "prepare") {
@@ -191,6 +201,30 @@ function useHiitTimer() {
     }
     speak(phaseCopy[phase].label);
   }, [phase, speak]);
+
+  useEffect(() => {
+    const handlePop = (event: PopStateEvent) => {
+      if (historyPushed.current && phase !== "idle" && phase !== "done") {
+        event.preventDefault();
+        reset();
+      }
+    };
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, [phase, reset]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (phase !== "idle" && phase !== "done") {
+      if (!historyPushed.current) {
+        history.pushState({ screen: "run" }, "", window.location.href);
+        historyPushed.current = true;
+      }
+    } else if (historyPushed.current) {
+      history.replaceState(null, "", window.location.pathname + window.location.search + window.location.hash);
+      historyPushed.current = false;
+    }
+  }, [phase]);
 
   return {
     controls: {
