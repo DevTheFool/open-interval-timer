@@ -270,8 +270,6 @@ export function App() {
   const { sets, workSeconds, restSeconds, setSets, setWorkSeconds, setRestSeconds } = controls;
   const { phase, remaining, currentSet, totalWorkoutSeconds, overallRemaining, isPaused } = status;
 
-  const showRemaining = phase === "idle" ? totalWorkoutSeconds : phase === "done" ? 0 : remaining;
-
   const canStart = phase === "idle" || phase === "done";
 
   const adjustSeconds = (setter: (value: number) => void, current: number, delta: number) => {
@@ -307,21 +305,6 @@ export function App() {
         </header>
 
         <section className="space-y-4 rounded-3xl border bg-background/80 p-5 shadow-sm backdrop-blur dark:border-input/40 dark:bg-background/80">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Current phase</p>
-              <p className="text-lg font-semibold">Set {Math.min(currentSet, sets)} of {sets}</p>
-            </div>
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${phaseCopy[phase].tone}`}>
-              {phaseCopy[phase].label}
-            </span>
-          </div>
-
-          <div className="rounded-2xl border bg-card px-4 py-5 text-center shadow-inner dark:border-input/40">
-            <p className="text-sm text-muted-foreground">Time left</p>
-            <p className="text-5xl font-bold tabular-nums tracking-tight">{formatSeconds(showRemaining)}</p>
-          </div>
-
           <div className="space-y-3">
             {[
               {
@@ -396,15 +379,8 @@ export function App() {
                 {formatSeconds(totalWorkoutSeconds)}
               </span>
             </Button>
-            <Button
-              variant="ghost"
-              className="w-full text-sm"
-              onClick={() => actions.reset()}
-            >
-              Reset
-            </Button>
             <p className="text-center text-xs text-muted-foreground">
-              Includes a {PREP_SECONDS}s prepare period, then cycles Work -> Rest until sets are complete.
+              {PREP_SECONDS}s prepare, then cycles Work -> Rest until sets are complete.
             </p>
           </div>
         </section>
