@@ -1,6 +1,6 @@
 import "./index.css";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -24,11 +24,20 @@ function useHiitTimer() {
   const [currentSet, setCurrentSet] = useState(1);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const lastSpoken = useRef<number | null>(null);
+  const lastAnnouncedPhase = useRef<Phase | null>(null);
 
   const totalWorkoutSeconds = useMemo(
     () => sets * workSeconds + Math.max(sets - 1, 0) * restSeconds,
     [restSeconds, sets, workSeconds],
   );
+
+  const speak = useCallback((text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }, []);
 
   const start = () => {
     setPhase("prepare");
@@ -36,6 +45,7 @@ function useHiitTimer() {
     setCurrentSet(1);
     setIsRunning(true);
     setIsPaused(false);
+    speak("Prepare");
   };
 
   const reset = () => {
@@ -158,6 +168,29 @@ function useHiitTimer() {
     if (!isRunning || isPaused || remaining > 0) return;
     goNext();
   }, [goNext, isPaused, isRunning, remaining]);
+
+  useEffect(() => {
+    if (!isRunning || isPaused) return;
+    if (remaining <= 5 && remaining > 0) {
+      if (lastSpoken.current !== remaining) {
+        speak(String(remaining));
+        lastSpoken.current = remaining;
+      }
+    } else if (remaining > 5) {
+      lastSpoken.current = null;
+    }
+  }, [isPaused, isRunning, remaining, speak]);
+
+  useEffect(() => {
+    if (phase === lastAnnouncedPhase.current) return;
+    lastAnnouncedPhase.current = phase;
+    if (phase === "idle") return;
+    if (phase === "done") {
+      speak("Great work!");
+      return;
+    }
+    speak(phaseCopy[phase].label);
+  }, [phase, speak]);
 
   return {
     controls: {
