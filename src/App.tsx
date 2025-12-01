@@ -200,6 +200,8 @@ const RunningView = ({
   remaining,
   currentSet,
   sets,
+  workDuration,
+  restDuration,
   onClose,
   onSkipBack,
   onSkipForward,
@@ -211,6 +213,8 @@ const RunningView = ({
   remaining: number;
   currentSet: number;
   sets: number;
+  workDuration: number;
+  restDuration: number;
   onClose: () => void;
   onSkipBack: () => void;
   onSkipForward: () => void;
@@ -219,8 +223,37 @@ const RunningView = ({
   totalRemaining: number;
 }) => {
   const label = phaseCopy[phase].label;
+  const workProgress =
+    phase === "work" && workDuration > 0 ? Math.min(Math.max(1 - remaining / workDuration, 0), 1) : 0;
+  const restProgress =
+    phase === "rest" && restDuration > 0 ? Math.min(Math.max(1 - remaining / restDuration, 0), 1) : 0;
+  const baseBg =
+    phase === "work"
+      ? "bg-emerald-950 text-emerald-50"
+      : phase === "rest"
+        ? "bg-sky-950 text-sky-50"
+        : "bg-slate-950 text-slate-50";
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-emerald-50 via-white to-slate-100 px-4 pb-8 pt-5 dark:from-slate-900 dark:via-slate-950 dark:to-black">
+    <div
+      className={`relative flex min-h-screen flex-col px-4 pb-8 pt-5 ${baseBg}`}
+    >
+      {phase === "work" && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-emerald-300/50 transition-[height] duration-[600ms] ease-out"
+            style={{ height: `${workProgress * 100}%` }}
+          />
+        </div>
+      )}
+      {phase === "rest" && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-sky-300/50 transition-[height] duration-[700ms] ease-out"
+            style={{ height: `${restProgress * 100}%` }}
+          />
+        </div>
+      )}
+      <div className="relative z-10 flex min-h-full flex-col">
       <header className="mb-6 flex items-center justify-between text-sm font-semibold text-muted-foreground">
         <Button variant="ghost" size="icon" className="rounded-full" onClick={onClose}>
           X
@@ -261,6 +294,7 @@ const RunningView = ({
           {">>"}
         </Button>
       </div>
+      </div>
     </div>
   );
 };
@@ -276,35 +310,18 @@ export function App() {
     setter(current + delta);
   };
 
-  if (phase !== "idle" && phase !== "done") {
-    return (
-      <RunningView
-        phase={phase}
-        remaining={remaining}
-        currentSet={currentSet}
-        sets={sets}
-        onClose={actions.reset}
-        onSkipBack={actions.skipBack}
-        onSkipForward={actions.skipForward}
-        onTogglePause={actions.togglePause}
-        isPaused={isPaused}
-        totalRemaining={overallRemaining}
-      />
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-foreground dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+  const setupView = (
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black text-foreground">
       <main className="mx-auto flex max-w-md flex-col gap-5 px-4 pb-10 pt-8">
         <header className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">HIIT Interval Timer</p>
-            <h1 className="text-2xl font-semibold">Open Interval Timer</h1>
+            <h1 className="text-2xl font-semibold text-foreground">Open Interval Timer</h1>
           </div>
           <span className="text-xs text-muted-foreground">Phone friendly</span>
         </header>
 
-        <section className="space-y-4 rounded-3xl border bg-background/80 p-5 shadow-sm backdrop-blur dark:border-input/40 dark:bg-background/80">
+        <section className="space-y-4 rounded-3xl border border-input/40 bg-background/80 p-5 shadow-sm backdrop-blur">
           <div className="space-y-3">
             {[
               {
@@ -334,10 +351,10 @@ export function App() {
             ].map(control => (
               <div
                 key={control.label}
-                className="flex items-center justify-between rounded-2xl border bg-muted/40 px-4 py-3 dark:border-input/40 dark:bg-input/20"
+                className="flex items-center justify-between rounded-2xl border border-input/40 bg-input/20 px-4 py-3"
               >
                 <div>
-                  <p className="text-sm font-medium">{control.label}</p>
+                  <p className="text-sm font-medium text-foreground">{control.label}</p>
                   <p className="text-xs text-muted-foreground">{control.subtitle}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -385,6 +402,29 @@ export function App() {
           </div>
         </section>
       </main>
+    </div>
+  );
+
+  return (
+    <div className="dark">
+      {phase !== "idle" && phase !== "done" ? (
+        <RunningView
+          phase={phase}
+          remaining={remaining}
+          currentSet={currentSet}
+          sets={sets}
+          workDuration={workSeconds}
+          restDuration={restSeconds}
+          onClose={actions.reset}
+          onSkipBack={actions.skipBack}
+          onSkipForward={actions.skipForward}
+          onTogglePause={actions.togglePause}
+          isPaused={isPaused}
+          totalRemaining={overallRemaining}
+        />
+      ) : (
+        setupView
+      )}
     </div>
   );
 }
