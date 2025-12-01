@@ -288,7 +288,12 @@ const RunningView = ({
       )}
       <div className="relative z-10 flex flex-1 flex-col">
       <header className="mb-6 flex items-center justify-between text-sm font-semibold text-muted-foreground">
-        <Button variant="ghost" size="icon" className="rounded-full" onClick={onClose}>
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full border-white/40 bg-white/10 text-foreground shadow-sm shadow-black/30"
+          onClick={onClose}
+        >
           X
         </Button>
         <div className="text-center">
@@ -312,18 +317,18 @@ const RunningView = ({
         <p className="text-xs text-muted-foreground">Use rewind/skip to adjust phases on the fly.</p>
       </div>
 
-      <div className="mt-auto grid grid-cols-3 items-center gap-3">
-        <Button variant="outline" className="h-14 w-full rounded-xl text-base font-semibold" onClick={onSkipBack}>
+      <div className="mt-auto grid grid-cols-5 items-center gap-3">
+        <Button variant="outline" className="h-14 w-full rounded-xl text-base font-semibold col-span-1" onClick={onSkipBack}>
           {"<<"}
         </Button>
         <Button
-          className="h-14 w-full rounded-xl text-base font-semibold"
-          variant={isPaused ? "secondary" : "default"}
+          className="h-14 w-full rounded-xl text-base font-semibold col-span-3"
+          variant={isPaused ? "default" : "secondary"}
           onClick={onTogglePause}
         >
           {isPaused ? "Resume" : "Pause"}
         </Button>
-        <Button variant="outline" className="h-14 w-full rounded-xl text-base font-semibold" onClick={onSkipForward}>
+        <Button variant="outline" className="h-14 w-full rounded-xl text-base font-semibold col-span-1" onClick={onSkipForward}>
           {">>"}
         </Button>
       </div>
