@@ -1,6 +1,6 @@
 import "./index.css";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +23,7 @@ function useHiitTimer() {
   const [remaining, setRemaining] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
   const [isRunning, setIsRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const totalWorkoutSeconds = useMemo(
     () => sets * workSeconds + Math.max(sets - 1, 0) * restSeconds,
@@ -34,6 +35,7 @@ function useHiitTimer() {
     setRemaining(PREP_SECONDS);
     setCurrentSet(1);
     setIsRunning(true);
+    setIsPaused(false);
   };
 
   const reset = () => {
@@ -41,43 +43,121 @@ function useHiitTimer() {
     setRemaining(0);
     setCurrentSet(1);
     setIsRunning(false);
+    setIsPaused(false);
   };
 
-  useEffect(() => {
-    if (!isRunning || remaining <= 0) return;
-    const id = window.setInterval(() => {
-      setRemaining(prev => Math.max(prev - 1, 0));
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [isRunning, remaining]);
-
-  useEffect(() => {
-    if (!isRunning || remaining > 0) return;
-
+  const goNext = useCallback(() => {
     if (phase === "prepare") {
       setPhase("work");
       setRemaining(workSeconds);
       return;
     }
-
     if (phase === "work") {
       if (currentSet >= sets) {
         setPhase("done");
         setIsRunning(false);
+        setIsPaused(false);
+        setRemaining(0);
         return;
       }
       setPhase("rest");
       setRemaining(restSeconds);
       return;
     }
-
     if (phase === "rest") {
       const nextSet = Math.min(currentSet + 1, sets);
       setCurrentSet(nextSet);
       setPhase("work");
       setRemaining(workSeconds);
     }
-  }, [currentSet, isRunning, phase, remaining, restSeconds, sets, workSeconds]);
+  }, [currentSet, phase, restSeconds, sets, workSeconds]);
+
+  const goBack = useCallback(() => {
+    if (phase === "prepare") {
+      setRemaining(PREP_SECONDS);
+      return;
+    }
+    if (phase === "work") {
+      const elapsed = workSeconds - remaining;
+      if (elapsed >= 5) {
+        setRemaining(workSeconds);
+        return;
+      }
+      if (currentSet === 1) {
+        setPhase("prepare");
+        setRemaining(PREP_SECONDS);
+        return;
+      }
+      setCurrentSet(currentSet - 1);
+      setPhase("rest");
+      setRemaining(restSeconds);
+      return;
+    }
+    if (phase === "rest") {
+      const elapsed = restSeconds - remaining;
+      if (elapsed >= 5) {
+        setRemaining(restSeconds);
+        return;
+      }
+      setPhase("work");
+      setRemaining(workSeconds);
+    }
+  }, [currentSet, phase, restSeconds, workSeconds]);
+
+  const skipForward = () => {
+    if (!isRunning) return;
+    goNext();
+  };
+
+  const skipBack = () => {
+    if (!isRunning) return;
+    goBack();
+  };
+
+  const togglePause = () => {
+    if (!isRunning || phase === "done") return;
+    setIsPaused(prev => !prev);
+  };
+
+  const overallRemaining = useMemo(() => {
+    if (phase === "idle") return totalWorkoutSeconds + PREP_SECONDS;
+    if (phase === "done") return 0;
+
+    const remainingWorkAndRest = (workSetsLeft: number, restSlotsLeft: number) =>
+      workSetsLeft * workSeconds + restSlotsLeft * restSeconds;
+
+    if (phase === "prepare") {
+      return remaining + remainingWorkAndRest(sets, Math.max(sets - 1, 0));
+    }
+
+    if (phase === "work") {
+      const remainingSetsAfter = Math.max(sets - currentSet, 0);
+      const restSlots =
+        (currentSet < sets ? 1 : 0) + Math.max(remainingSetsAfter - 1, 0);
+      return remaining + remainingWorkAndRest(remainingSetsAfter, restSlots);
+    }
+
+    if (phase === "rest") {
+      const remainingSetsAfterRest = Math.max(sets - currentSet, 0);
+      const restSlotsAfter = Math.max(remainingSetsAfterRest - 1, 0);
+      return remaining + remainingWorkAndRest(remainingSetsAfterRest, restSlotsAfter);
+    }
+
+    return remaining;
+  }, [currentSet, phase, remaining, restSeconds, sets, totalWorkoutSeconds, workSeconds]);
+
+  useEffect(() => {
+    if (!isRunning || isPaused || remaining <= 0) return;
+    const id = window.setInterval(() => {
+      setRemaining(prev => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [isPaused, isRunning, remaining]);
+
+  useEffect(() => {
+    if (!isRunning || isPaused || remaining > 0) return;
+    goNext();
+  }, [goNext, isPaused, isRunning, remaining]);
 
   return {
     controls: {
@@ -93,10 +173,15 @@ function useHiitTimer() {
       remaining,
       currentSet,
       totalWorkoutSeconds,
+      overallRemaining,
+      isPaused,
     },
     actions: {
       start,
       reset,
+      skipBack,
+      skipForward,
+      togglePause,
     },
     isRunning,
   };
@@ -110,10 +195,80 @@ const phaseCopy: Record<Phase, { label: string; tone: string }> = {
   done: { label: "Finished", tone: "bg-purple-100 text-purple-900 border border-purple-200 dark:bg-purple-950 dark:text-purple-50" },
 };
 
+const RunningView = ({
+  phase,
+  remaining,
+  currentSet,
+  sets,
+  onClose,
+  onSkipBack,
+  onSkipForward,
+  onTogglePause,
+  isPaused,
+  totalRemaining,
+}: {
+  phase: Phase;
+  remaining: number;
+  currentSet: number;
+  sets: number;
+  onClose: () => void;
+  onSkipBack: () => void;
+  onSkipForward: () => void;
+  onTogglePause: () => void;
+  isPaused: boolean;
+  totalRemaining: number;
+}) => {
+  const label = phaseCopy[phase].label;
+  return (
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-emerald-50 via-white to-slate-100 px-4 pb-8 pt-5 dark:from-slate-900 dark:via-slate-950 dark:to-black">
+      <header className="mb-6 flex items-center justify-between text-sm font-semibold text-muted-foreground">
+        <Button variant="ghost" size="icon" className="rounded-full" onClick={onClose}>
+          X
+        </Button>
+        <div className="text-center">
+          <p className="text-[11px] uppercase tracking-wide">Remaining</p>
+          <p className="text-lg font-bold tabular-nums">{formatSeconds(Math.max(totalRemaining, 0))}</p>
+        </div>
+        <div className="min-w-[36px]" />
+      </header>
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-6">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">Set {Math.min(currentSet, sets)} / {sets}</p>
+          <p className="mt-1 text-3xl font-semibold tracking-tight">{label}</p>
+        </div>
+        <div className="relative w-full max-w-xs">
+          <div className="rounded-3xl border border-emerald-100 bg-white/80 p-10 text-center shadow-lg shadow-emerald-100/40 backdrop-blur dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:shadow-emerald-900/40">
+            <p className="text-sm text-muted-foreground">Time</p>
+            <p className="mt-2 text-6xl font-bold tabular-nums tracking-tight">{formatSeconds(remaining)}</p>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">Use rewind/skip to adjust phases on the fly.</p>
+      </div>
+
+      <div className="mt-auto grid grid-cols-3 items-center gap-3">
+        <Button variant="outline" className="h-14 rounded-xl text-base font-semibold" onClick={onSkipBack}>
+          {"<<"}
+        </Button>
+        <Button
+          className="h-14 rounded-xl text-base font-semibold"
+          variant={isPaused ? "secondary" : "default"}
+          onClick={onTogglePause}
+        >
+          {isPaused ? "Resume" : "Pause"}
+        </Button>
+        <Button variant="outline" className="h-14 rounded-xl text-base font-semibold" onClick={onSkipForward}>
+          {">>"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export function App() {
   const { controls, status, actions, isRunning } = useHiitTimer();
   const { sets, workSeconds, restSeconds, setSets, setWorkSeconds, setRestSeconds } = controls;
-  const { phase, remaining, currentSet, totalWorkoutSeconds } = status;
+  const { phase, remaining, currentSet, totalWorkoutSeconds, overallRemaining, isPaused } = status;
 
   const showRemaining = phase === "idle" ? totalWorkoutSeconds : phase === "done" ? 0 : remaining;
 
@@ -122,6 +277,23 @@ export function App() {
   const adjustSeconds = (setter: (value: number) => void, current: number, delta: number) => {
     setter(current + delta);
   };
+
+  if (phase !== "idle" && phase !== "done") {
+    return (
+      <RunningView
+        phase={phase}
+        remaining={remaining}
+        currentSet={currentSet}
+        sets={sets}
+        onClose={actions.reset}
+        onSkipBack={actions.skipBack}
+        onSkipForward={actions.skipForward}
+        onTogglePause={actions.togglePause}
+        isPaused={isPaused}
+        totalRemaining={overallRemaining}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-foreground dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
@@ -192,7 +364,7 @@ export function App() {
                     disabled={isRunning}
                     onClick={() => control.onChange(-control.step)}
                   >
-                    −
+                    -
                   </Button>
                   <div className="min-w-[72px] rounded-xl bg-background px-4 py-2 text-center text-lg font-semibold tabular-nums">
                     {control.value}
@@ -232,7 +404,7 @@ export function App() {
               Reset
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              Includes a {PREP_SECONDS}s prepare period, then cycles Work ➜ Rest until sets are complete.
+              Includes a {PREP_SECONDS}s prepare period, then cycles Work -> Rest until sets are complete.
             </p>
           </div>
         </section>
