@@ -231,11 +231,11 @@ const RunningView = ({
     phase === "work"
       ? "bg-emerald-950 text-emerald-50"
       : phase === "rest"
-        ? "bg-sky-950 text-sky-50"
+        ? "bg-indigo-950 text-indigo-50"
         : "bg-slate-950 text-slate-50";
   return (
     <div
-      className={`relative flex min-h-screen flex-col px-4 pb-8 pt-5 ${baseBg}`}
+      className={`relative flex min-h-[100dvh] w-full flex-col px-4 pb-8 pt-5 ${baseBg}`}
     >
       {phase === "work" && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -248,12 +248,12 @@ const RunningView = ({
       {phase === "rest" && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div
-            className="absolute bottom-0 left-0 right-0 bg-sky-300/50 transition-[height] duration-[700ms] ease-out"
+            className="absolute bottom-0 left-0 right-0 bg-indigo-400/50 transition-[height] duration-[700ms] ease-out"
             style={{ height: `${restProgress * 100}%` }}
           />
         </div>
       )}
-      <div className="relative z-10 flex min-h-full flex-col">
+      <div className="relative z-10 flex flex-1 flex-col">
       <header className="mb-6 flex items-center justify-between text-sm font-semibold text-muted-foreground">
         <Button variant="ghost" size="icon" className="rounded-full" onClick={onClose}>
           X
@@ -280,17 +280,17 @@ const RunningView = ({
       </div>
 
       <div className="mt-auto grid grid-cols-3 items-center gap-3">
-        <Button variant="outline" className="h-14 rounded-xl text-base font-semibold" onClick={onSkipBack}>
+        <Button variant="outline" className="h-14 w-full rounded-xl text-base font-semibold" onClick={onSkipBack}>
           {"<<"}
         </Button>
         <Button
-          className="h-14 rounded-xl text-base font-semibold"
+          className="h-14 w-full rounded-xl text-base font-semibold"
           variant={isPaused ? "secondary" : "default"}
           onClick={onTogglePause}
         >
           {isPaused ? "Resume" : "Pause"}
         </Button>
-        <Button variant="outline" className="h-14 rounded-xl text-base font-semibold" onClick={onSkipForward}>
+        <Button variant="outline" className="h-14 w-full rounded-xl text-base font-semibold" onClick={onSkipForward}>
           {">>"}
         </Button>
       </div>
@@ -406,7 +406,7 @@ export function App() {
   );
 
   return (
-    <div className="dark">
+    <div className="dark min-h-[100dvh]">
       {phase !== "idle" && phase !== "done" ? (
         <RunningView
           phase={phase}
