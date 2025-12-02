@@ -23,3 +23,15 @@ Add at end of it all, "Great work!" message being read by TTS.
 Make the middle button Pause/Resume take more space the rest of the buttons there. And make the X button more visible.
 
 Knowing everything, remake it from scratch better, and don't write everything in just one file.
+
+We are going to make some big changes to make this happen, so make sure you understand the code/where we are now and make a plan before starting the work.
+
+Under the "Start workout" button we will have a "+ Multi-exercise workout" button, when click it will go to another screen where it will have at the top a workout name text filed and a delete icon button, under that a list to show the routine/exercises and a button under "+ Add exercise", when click either "+ Add exercise" or an already there exercise, we go to another screen similar to the first TimerSetup, but this will have 3 more files, "Exercise name" instead of default Work and a REST (LAST) and lastly a delete icon button.
+
+Now on the main screen we will have the workouts saved on top, first thing on the page: name and full time duration and an edit button. When clicked the full element, will start the workout routine, each exercise one by one in the workout.
+
+There are 2 bugs: 
+1. I can add a workout without any exercise.
+2. There is a console error:
+
+Add a good and easy way to change the order of the exercises in the workout edit menu using the HTML Drag and Drop API.

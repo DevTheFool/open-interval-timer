@@ -84,6 +84,31 @@ export function useWorkoutLibrary() {
     );
   };
 
+  const reorderExercises = (
+    workoutId: string,
+    fromIndex: number,
+    toIndex: number,
+  ) => {
+    if (fromIndex === toIndex) return;
+    setWorkouts((prev) =>
+      prev.map((workout) => {
+        if (workout.id !== workoutId) return workout;
+        const exercises = [...workout.exercises];
+        if (
+          fromIndex < 0 ||
+          toIndex < 0 ||
+          fromIndex >= exercises.length ||
+          toIndex >= exercises.length
+        ) {
+          return workout;
+        }
+        const [moved] = exercises.splice(fromIndex, 1);
+        exercises.splice(toIndex, 0, moved);
+        return { ...workout, exercises };
+      }),
+    );
+  };
+
   const getWorkout = (id: string) =>
     workouts.find((workout) => workout.id === id);
 
@@ -94,6 +119,7 @@ export function useWorkoutLibrary() {
     deleteWorkout,
     upsertExercise,
     deleteExercise,
+    reorderExercises,
     getWorkout,
   };
 }

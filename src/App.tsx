@@ -46,6 +46,7 @@ export default function App() {
     deleteWorkout,
     upsertExercise,
     deleteExercise,
+    reorderExercises,
     getWorkout,
   } = useWorkoutLibrary();
 
@@ -207,6 +208,7 @@ export default function App() {
               exerciseId,
             })
           }
+          onReorder={(from, to) => reorderExercises(activeWorkout.id, from, to)}
         />
       ) : screen === "exercise-editor" && activeWorkout ? (
         <ExerciseEditor

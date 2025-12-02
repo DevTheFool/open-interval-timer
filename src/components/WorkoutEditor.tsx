@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { exerciseDuration, formatSeconds, workoutDuration } from "@/lib/utils";
 import type { WorkoutPlan } from "@/types";
@@ -9,6 +10,7 @@ type Props = {
   onUpdateName: (name: string) => void;
   onDelete: (id: string) => void;
   onOpenExercise: (exerciseId: string | null) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
 };
 
 export function WorkoutEditor({
@@ -18,8 +20,16 @@ export function WorkoutEditor({
   onUpdateName,
   onDelete,
   onOpenExercise,
+  onReorder,
 }: Props) {
   const totalSeconds = workoutDuration(workout.exercises, prepSeconds);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const handleDrop = (targetIndex: number) => {
+    if (dragIndex === null || dragIndex === targetIndex) return;
+    onReorder(dragIndex, targetIndex);
+    setDragIndex(null);
+  };
 
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-slate-950 via-slate-900 to-black text-foreground">
@@ -65,9 +75,7 @@ export function WorkoutEditor({
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Exercises
               </p>
-              <p className="text-sm font-semibold">
-                Tap to edit or add a move
-              </p>
+              <p className="text-sm font-semibold">Tap to edit or add a move</p>
             </div>
             <Button size="sm" onClick={() => onOpenExercise(null)}>
               + Add exercise
@@ -80,27 +88,58 @@ export function WorkoutEditor({
               </p>
             )}
             {workout.exercises.map((exercise, idx) => (
-              <button
+              <div
                 key={exercise.id}
+                draggable
+                role="button"
+                tabIndex={0}
+                aria-grabbed={dragIndex === idx}
                 onClick={() => onOpenExercise(exercise.id)}
-                className="w-full rounded-2xl border border-input/40 bg-input/20 px-4 py-3 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onOpenExercise(exercise.id);
+                  }
+                }}
+                onDragStart={(e) => {
+                  e.stopPropagation();
+                  setDragIndex(idx);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(idx);
+                }}
+                onDragEnd={() => setDragIndex(null)}
+                className="group w-full rounded-2xl border border-input/40 bg-input/20 px-4 py-3 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 data-[dragging=true]:opacity-60"
+                data-dragging={dragIndex === idx}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <p className="text-base font-semibold">
-                      {idx + 1}. {exercise.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {exercise.sets} sets · Work {exercise.workSeconds}s · Rest{" "}
-                      {exercise.restSeconds}s · Rest (last){" "}
-                      {exercise.restLastSeconds}s
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="cursor-grab select-none text-lg text-muted-foreground group-active:cursor-grabbing"
+                      title="Drag to reorder"
+                    >
+                      ↕
+                    </span>
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold">
+                        {idx + 1}. {exercise.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {exercise.sets} sets · Work {exercise.workSeconds}s ·
+                        Rest {exercise.restSeconds}s · Rest (last){" "}
+                        {exercise.restLastSeconds}s
+                      </p>
+                    </div>
                   </div>
                   <span className="text-sm font-semibold tabular-nums text-muted-foreground">
                     {formatSeconds(exerciseDuration(exercise))}
                   </span>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         </div>
@@ -110,9 +149,7 @@ export function WorkoutEditor({
           onClick={onBack}
           disabled={workout.exercises.length === 0}
         >
-          {workout.exercises.length === 0
-            ? "Add an exercise to save"
-            : "Done"}
+          {workout.exercises.length === 0 ? "Add an exercise to save" : "Done"}
         </Button>
       </div>
     </div>
