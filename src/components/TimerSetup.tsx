@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { WorkoutCalendar } from "@/components/WorkoutCalendar";
-import { formatSeconds } from "@/lib/utils";
+import { formatSeconds, workoutDuration } from "@/lib/utils";
+import type { WorkoutPlan } from "@/types";
 
 type Props = {
   sets: number;
@@ -14,6 +15,10 @@ type Props = {
   onStart: () => void;
   canStart: boolean;
   completedDates: Set<string>;
+  workouts: WorkoutPlan[];
+  onSelectWorkout: (workout: WorkoutPlan) => void;
+  onEditWorkout: (workoutId: string) => void;
+  onCreateWorkout: () => void;
 };
 
 const controlList = [
@@ -46,6 +51,10 @@ export function TimerSetup({
   onStart,
   canStart,
   completedDates,
+  workouts,
+  onSelectWorkout,
+  onEditWorkout,
+  onCreateWorkout,
 }: Props) {
   const adjustSeconds = (
     setter: (v: number) => void,
@@ -56,15 +65,70 @@ export function TimerSetup({
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black text-foreground">
       <main className="mx-auto flex max-w-md flex-col gap-5 px-4 pb-10 pt-8">
-        <header className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">HIIT Interval Timer</p>
-            <h1 className="text-2xl font-semibold text-foreground">
-              Open Interval Timer
-            </h1>
+        <section className="space-y-3 rounded-3xl border border-input/40 bg-background/80 p-4 shadow-sm backdrop-blur">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Saved workouts
+              </p>
+              <p className="text-sm font-semibold">Tap to start a routine</p>
+            </div>
+            <Button size="sm" variant="outline" onClick={onCreateWorkout}>
+              + Multi-exercise
+            </Button>
           </div>
-          <span className="text-xs text-muted-foreground">Phone friendly</span>
-        </header>
+          <div className="space-y-2">
+            {workouts.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No routines yet. Create one to chain exercises.
+              </p>
+            )}
+            {workouts.map((workout) => {
+              const hasExercises = workout.exercises.length > 0;
+              const duration = formatSeconds(
+                workoutDuration(workout.exercises, prepSeconds)
+              );
+              return (
+                <button
+                  key={workout.id}
+                  className="w-full rounded-2xl border border-input/40 bg-input/20 px-4 py-3 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  onClick={() => hasExercises && onSelectWorkout(workout)}
+                  disabled={!hasExercises}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold">{workout.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {hasExercises
+                          ? `${workout.exercises.length} exercise${
+                              workout.exercises.length > 1 ? "s" : ""
+                            } · includes ${prepSeconds}s prep`
+                          : "Add exercises to start"}
+                      </p>
+                      {hasExercises && (
+                        <p className="text-lg font-semibold tabular-nums">
+                          {duration}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditWorkout(workout.id);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
         <section className="space-y-4 rounded-3xl border border-input/40 bg-background/80 p-5 shadow-sm backdrop-blur">
           <div className="space-y-3">
@@ -131,6 +195,13 @@ export function TimerSetup({
               <span className="rounded-lg bg-primary-foreground/10 px-3 py-1 text-sm font-semibold text-primary-foreground">
                 {formatSeconds(totalWorkoutSeconds)}
               </span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 w-full justify-center rounded-xl text-sm font-semibold"
+              onClick={onCreateWorkout}
+            >
+              + Multi-exercise workout
             </Button>
             <p className="text-center text-xs text-muted-foreground">
               {prepSeconds}s prepare, then cycles Work -{">"} Rest until sets

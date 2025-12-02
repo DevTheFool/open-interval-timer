@@ -6,9 +6,11 @@ type Props = {
   phase: Phase;
   remaining: number;
   currentSet: number;
-  sets: number;
-  workDuration: number;
-  restDuration: number;
+  setsForCurrent: number;
+  stepDuration: number;
+  exerciseName: string;
+  currentExerciseIndex: number;
+  totalExercises: number;
   totalRemaining: number;
   isPaused: boolean;
   onClose: () => void;
@@ -21,9 +23,11 @@ export function RunningView({
   phase,
   remaining,
   currentSet,
-  sets,
-  workDuration,
-  restDuration,
+  setsForCurrent,
+  stepDuration,
+  exerciseName,
+  currentExerciseIndex,
+  totalExercises,
   totalRemaining,
   isPaused,
   onClose,
@@ -32,14 +36,18 @@ export function RunningView({
   onTogglePause,
 }: Props) {
   const label =
-    phase === "prepare" ? "Prepare" : phase === "work" ? "Work" : "Rest";
+    phase === "prepare"
+      ? "Prepare"
+      : phase === "work"
+      ? exerciseName || "Work"
+      : "Rest";
   const workProgress =
-    phase === "work" && workDuration > 0
-      ? Math.min(Math.max(1 - remaining / workDuration, 0), 1)
+    phase === "work" && stepDuration > 0
+      ? Math.min(Math.max(1 - remaining / stepDuration, 0), 1)
       : 0;
   const restProgress =
-    phase === "rest" && restDuration > 0
-      ? Math.min(Math.max(1 - remaining / restDuration, 0), 1)
+    phase === "rest" && stepDuration > 0
+      ? Math.min(Math.max(1 - remaining / stepDuration, 0), 1)
       : 0;
   const baseBg =
     phase === "work"
@@ -88,9 +96,17 @@ export function RunningView({
 
         <div className="flex flex-1 flex-col items-center justify-center gap-6">
           <div className="text-center space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
-              {label} {Math.min(currentSet, sets)}/{sets}
+            <p className="text-sm uppercase tracking-wide text-muted-foreground">
+              {totalExercises > 0
+                ? `Exercise ${Math.max(currentExerciseIndex + 1, 1)}/${totalExercises}`
+                : "Workout"}
             </p>
+            <p className="text-3xl font-semibold tracking-tight">{label}</p>
+            {setsForCurrent > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Set {Math.max(currentSet, 1)}/{setsForCurrent}
+              </p>
+            )}
           </div>
           <div className="relative w-full max-w-xs">
             <div className="rounded-3xl border border-white/20 bg-white/10 p-10 text-center shadow-lg shadow-black/30 backdrop-blur">
