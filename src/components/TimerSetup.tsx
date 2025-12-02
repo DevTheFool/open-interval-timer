@@ -78,55 +78,62 @@ export function TimerSetup({
             </Button>
           </div>
           <div className="space-y-2">
-            {workouts.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No routines yet. Create one to chain exercises.
-              </p>
-            )}
-            {workouts.map((workout) => {
-              const hasExercises = workout.exercises.length > 0;
-              const duration = formatSeconds(
-                workoutDuration(workout.exercises, prepSeconds)
-              );
-              return (
-                <button
-                  key={workout.id}
-                  className="w-full rounded-2xl border border-input/40 bg-input/20 px-4 py-3 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                  onClick={() => hasExercises && onSelectWorkout(workout)}
-                  disabled={!hasExercises}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-base font-semibold">{workout.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {hasExercises
-                          ? `${workout.exercises.length} exercise${
-                              workout.exercises.length > 1 ? "s" : ""
-                            } · includes ${prepSeconds}s prep`
-                          : "Add exercises to start"}
-                      </p>
-                      {hasExercises && (
+            {workouts.filter((workout) => workout.exercises.length > 0).length ===
+              0 && (
+                <p className="text-sm text-muted-foreground">
+                  No routines yet. Create one to chain exercises.
+                </p>
+              )}
+            {workouts
+              .filter((workout) => workout.exercises.length > 0)
+              .map((workout) => {
+                const duration = formatSeconds(
+                  workoutDuration(workout.exercises, prepSeconds)
+                );
+                return (
+                  <div
+                    key={workout.id}
+                    role="button"
+                    tabIndex={0}
+                    className="w-full rounded-2xl border border-input/40 bg-input/20 px-4 py-3 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                    onClick={() => onSelectWorkout(workout)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onSelectWorkout(workout);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-base font-semibold">
+                          {workout.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {`${workout.exercises.length} exercise${
+                            workout.exercises.length > 1 ? "s" : ""
+                          } · includes ${prepSeconds}s prep`}
+                        </p>
                         <p className="text-lg font-semibold tabular-nums">
                           {duration}
                         </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditWorkout(workout.id);
-                        }}
-                      >
-                        Edit
-                      </Button>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditWorkout(workout.id);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </button>
-              );
-            })}
+                );
+              })}
           </div>
         </section>
 

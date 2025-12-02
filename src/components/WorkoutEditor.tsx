@@ -105,8 +105,14 @@ export function WorkoutEditor({
           </div>
         </div>
 
-        <Button className="h-12 rounded-xl text-base font-semibold" onClick={onBack}>
-          Done
+        <Button
+          className="h-12 rounded-xl text-base font-semibold"
+          onClick={onBack}
+          disabled={workout.exercises.length === 0}
+        >
+          {workout.exercises.length === 0
+            ? "Add an exercise to save"
+            : "Done"}
         </Button>
       </div>
     </div>

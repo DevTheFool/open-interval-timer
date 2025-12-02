@@ -54,6 +54,7 @@ export default function App() {
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(
     null,
   );
+  const [newWorkoutId, setNewWorkoutId] = useState<string | null>(null);
 
   const activeWorkout =
     editingWorkoutId && workouts.length
@@ -81,6 +82,16 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (
+      activeWorkout &&
+      newWorkoutId === activeWorkout.id &&
+      activeWorkout.exercises.length > 0
+    ) {
+      setNewWorkoutId(null);
+    }
+  }, [activeWorkout, newWorkoutId]);
+
+  useEffect(() => {
     const handlePop = (event: PopStateEvent) => {
       const nextScreen = (event.state?.screen as Screen) ?? "setup";
       const workoutId = (event.state?.workoutId as string | null) ?? null;
@@ -88,13 +99,17 @@ export default function App() {
       if (phase !== "idle" && phase !== "done") {
         reset();
       }
+      if (activeWorkout && activeWorkout.exercises.length === 0) {
+        deleteWorkout(activeWorkout.id);
+        setNewWorkoutId(null);
+      }
       setScreen(nextScreen);
       setEditingWorkoutId(workoutId);
       setEditingExerciseId(exerciseId);
     };
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
-  }, [phase, reset]);
+  }, [activeWorkout, deleteWorkout, phase, reset]);
 
   useEffect(() => {
     if (screen !== "running") return;
@@ -140,6 +155,7 @@ export default function App() {
 
   const handleCreateWorkout = () => {
     const workout = createWorkout();
+    setNewWorkoutId(workout.id);
     pushScreen("workout-editor", { workoutId: workout.id, exerciseId: null });
   };
 
@@ -172,10 +188,17 @@ export default function App() {
         <WorkoutEditor
           workout={activeWorkout}
           prepSeconds={prepSeconds}
-          onBack={() => history.back()}
+          onBack={() => {
+            if (activeWorkout.exercises.length === 0) {
+              deleteWorkout(activeWorkout.id);
+              setNewWorkoutId(null);
+            }
+            history.back();
+          }}
           onUpdateName={(name) => updateWorkout(activeWorkout.id, { name })}
           onDelete={(id) => {
             deleteWorkout(id);
+            if (newWorkoutId === id) setNewWorkoutId(null);
             history.back();
           }}
           onOpenExercise={(exerciseId) =>
