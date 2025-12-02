@@ -21,3 +21,5 @@ When is 5s or lower, for every second and say the text using the browser text-to
 Add at end of it all, "Great work!" message being read by TTS.
 
 Make the middle button Pause/Resume take more space the rest of the buttons there. And make the X button more visible.
+
+Knowing everything, remake it from scratch better, and don't write everything in just one file.
