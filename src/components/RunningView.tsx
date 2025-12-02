@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { formatSeconds } from "@/lib/utils";
 import type { Phase } from "@/hooks/useHiitTimer";
+import { formatSeconds } from "@/lib/utils";
 
 type Props = {
   phase: Phase;

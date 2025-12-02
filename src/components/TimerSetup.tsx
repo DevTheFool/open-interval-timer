@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { WorkoutCalendar } from "@/components/WorkoutCalendar";
 import { formatSeconds } from "@/lib/utils";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
   prepSeconds: number;
   onStart: () => void;
   canStart: boolean;
+  completedDates: Set<string>;
 };
 
 const controlList = [
@@ -43,6 +45,7 @@ export function TimerSetup({
   prepSeconds,
   onStart,
   canStart,
+  completedDates,
 }: Props) {
   const adjustSeconds = (
     setter: (v: number) => void,
@@ -135,6 +138,8 @@ export function TimerSetup({
             </p>
           </div>
         </section>
+
+        <WorkoutCalendar completedDates={completedDates} />
       </main>
     </div>
   );
