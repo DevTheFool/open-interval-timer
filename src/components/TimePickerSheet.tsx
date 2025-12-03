@@ -87,6 +87,10 @@ export function TimePickerSheet({
     setSeconds(clamp(total, minSeconds, maxSeconds));
   };
 
+  const handleDone = () => {
+    onConfirm(seconds);
+  };
+
   if (!open) return null;
 
   return (
@@ -95,26 +99,14 @@ export function TimePickerSheet({
         type="button"
         aria-label="Close time picker"
         className="flex-1"
-        onClick={onClose}
+        onClick={handleDone}
       />
-      <div className="rounded-t-3xl border border-input/40 bg-slate-950 px-4 pb-6 pt-4 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-sm font-semibold text-muted-foreground"
-          >
-            Cancel
-          </button>
-          <p className="text-sm font-semibold text-foreground">{title}</p>
-          <button
-            type="button"
-            onClick={() => onConfirm(seconds)}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          >
-            Done
-          </button>
-        </div>
+      <div className="max-h-[70vh] rounded-t-3xl border border-input/40 bg-slate-950 px-4 pb-7 pt-4 shadow-xl">
+        {title ? (
+          <p className="pb-3 text-center text-sm font-semibold text-muted-foreground">
+            {title}
+          </p>
+        ) : null}
         <div className="flex gap-3">
           <TimeColumn
             label="Minutes"

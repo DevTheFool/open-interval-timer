@@ -44,3 +44,7 @@ I want to use GitHub Pages and GitHub Actions to deploy this Bun React website, 
 
 
 I want you to add a popup mobile like, scrollable time picker when clicking directly on the time and not the - or + buttons, for Work, Rest, etc. And the time I want to be shown in mins and seconds separately not just seconds. Think hard before making any changes because this is not quite that easy.
+
+make the max time be 60m 59s and make the s be incremented by 1 in the timepickersheet
+make it so when I click outside after selecting a time, it as if I click done not cancel
+remove the top: cancel, Rest duration, Done. and make it take a bit more of the screen
