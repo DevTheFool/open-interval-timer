@@ -53,10 +53,33 @@ const buildSteps = (exercises: ExerciseConfig[]): Step[] => {
   return steps;
 };
 
+const SIMPLE_SETTINGS_KEY = "hiit-simple-settings";
+
+const readSimpleSettings = () => {
+  const fallback = { sets: 4, workSeconds: 30, restSeconds: 60 };
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = localStorage.getItem(SIMPLE_SETTINGS_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<typeof fallback>;
+    return {
+      sets: clamp(parsed.sets ?? fallback.sets, 1, 20),
+      workSeconds: clamp(parsed.workSeconds ?? fallback.workSeconds, 5, 600),
+      restSeconds: clamp(parsed.restSeconds ?? fallback.restSeconds, 5, 600),
+    };
+  } catch {
+    return fallback;
+  }
+};
+
 export function useHiitTimer() {
-  const [sets, setSets] = useState(4);
-  const [workSeconds, setWorkSeconds] = useState(30);
-  const [restSeconds, setRestSeconds] = useState(60);
+  const [sets, setSets] = useState(() => readSimpleSettings().sets);
+  const [workSeconds, setWorkSeconds] = useState(
+    () => readSimpleSettings().workSeconds
+  );
+  const [restSeconds, setRestSeconds] = useState(
+    () => readSimpleSettings().restSeconds
+  );
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1);
@@ -86,6 +109,14 @@ export function useHiitTimer() {
   );
 
   const currentStep = steps[currentStepIndex] ?? null;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(
+      SIMPLE_SETTINGS_KEY,
+      JSON.stringify({ sets, workSeconds, restSeconds })
+    );
+  }, [sets, workSeconds, restSeconds]);
 
   const begin = useCallback(
     (exercises: ExerciseConfig[], workoutName?: string) => {

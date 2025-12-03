@@ -33,7 +33,7 @@ const controlList = [
   {
     key: "rest",
     label: "Rest",
-    subtitle: "Catch your breath",
+    subtitle: "Between sets",
     suffix: "s",
     step: 5,
   },
