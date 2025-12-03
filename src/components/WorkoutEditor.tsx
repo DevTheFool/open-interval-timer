@@ -113,27 +113,42 @@ export function WorkoutEditor({
                   handleDrop(idx);
                 }}
                 onDragEnd={() => setDragIndex(null)}
-                className="group w-full rounded-2xl border border-input/40 bg-input/20 px-4 py-3 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 data-[dragging=true]:opacity-60"
+                className="group relative w-full rounded-2xl border bg-input/30 border-input/40 px-5 py-4 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 data-[dragging=true]:opacity-60"
                 data-dragging={dragIndex === idx}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <span
-                      className="cursor-grab select-none text-lg text-muted-foreground group-active:cursor-grabbing"
-                      title="Drag to reorder"
-                    >
-                      ↕
-                    </span>
-                    <div className="space-y-1">
-                      <p className="text-base font-semibold">
-                        {idx + 1}. {exercise.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {exercise.sets} sets · Work {exercise.workSeconds}s ·
-                        Rest {exercise.restSeconds}s · Rest (last){" "}
-                        {exercise.restLastSeconds}s
-                      </p>
+                <span className="absolute left-[-5px] top-1/2 rounded-l-sm rounded-r-xl bg-white px-2 py-1 text-xs font-semibold text-slate-900 shadow transform -translate-y-1/2">
+                  x{exercise.sets}
+                </span>
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1 pl-3">
+                    <div className="flex items-center gap-3">
+                      <span className="w-14 text-sm font-semibold tabular-nums text-muted-foreground">
+                        {formatSeconds(exercise.workSeconds)}
+                      </span>
+                      <span className="text-sm font-semibold text-emerald-400">
+                        {exercise.name}
+                      </span>
                     </div>
+                    {exercise.restSeconds > 0 && (
+                      <div className="flex items-center gap-3">
+                        <span className="w-14 text-sm font-semibold tabular-nums text-muted-foreground">
+                          {formatSeconds(exercise.restSeconds)}
+                        </span>
+                        <span className="text-sm font-semibold text-sky-300">
+                          REST
+                        </span>
+                      </div>
+                    )}
+                    {exercise.restLastSeconds > 0 && (
+                      <div className="flex items-center gap-3">
+                        <span className="w-14 text-sm font-semibold tabular-nums text-muted-foreground">
+                          {formatSeconds(exercise.restLastSeconds)}
+                        </span>
+                        <span className="text-sm font-semibold text-sky-400">
+                          REST (LAST)
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <span className="text-sm font-semibold tabular-nums text-muted-foreground">
                     {formatSeconds(exerciseDuration(exercise))}

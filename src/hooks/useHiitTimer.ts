@@ -64,8 +64,12 @@ export function useHiitTimer() {
   const [remaining, setRemaining] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [activeExercises, setActiveExercises] = useState<ExerciseConfig[] | null>(null);
-  const [activeWorkoutName, setActiveWorkoutName] = useState<string | null>(null);
+  const [activeExercises, setActiveExercises] = useState<
+    ExerciseConfig[] | null
+  >(null);
+  const [activeWorkoutName, setActiveWorkoutName] = useState<string | null>(
+    null
+  );
 
   const lastCountdownSpoken = useRef<number | null>(null);
   const lastPhaseAnnounced = useRef<Phase | null>(null);
@@ -78,7 +82,7 @@ export function useHiitTimer() {
         restSeconds,
         restLastSeconds: 0,
       }),
-    [restSeconds, sets, workSeconds],
+    [restSeconds, sets, workSeconds]
   );
 
   const currentStep = steps[currentStepIndex] ?? null;
@@ -105,7 +109,7 @@ export function useHiitTimer() {
       lastCountdownSpoken.current = null;
       lastPhaseAnnounced.current = null;
     },
-    [],
+    []
   );
 
   const start = useCallback(() => {
@@ -125,7 +129,7 @@ export function useHiitTimer() {
     (exercises: ExerciseConfig[], workoutName?: string) => {
       begin(exercises, workoutName);
     },
-    [begin],
+    [begin]
   );
 
   const reset = useCallback(() => {
@@ -234,7 +238,7 @@ export function useHiitTimer() {
     }
     if (phase === "work") {
       const name = currentStep?.exerciseName;
-      speak(name ? `Work ${name}` : "Work");
+      speak(name ? name : "Work");
       return;
     }
     speak("Rest");
