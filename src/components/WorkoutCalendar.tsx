@@ -111,7 +111,7 @@ export function WorkoutCalendar({ completedDates }: Props) {
             ? "bg-slate-900 text-foreground border-input/40"
             : "bg-slate-900/40 text-muted-foreground border-input/20";
           const todayClasses = isToday
-            ? "outline outline-1 outline-emerald-400/60"
+            ? "outline outline-2 outline-emerald-400/60"
             : "";
           return (
             <div
