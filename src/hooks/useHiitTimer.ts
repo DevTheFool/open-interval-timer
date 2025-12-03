@@ -73,6 +73,11 @@ const readSimpleSettings = () => {
 };
 
 export function useHiitTimer() {
+  type WakeLockSentinel = { release: () => Promise<void> };
+  type NavigatorWithWakeLock = Navigator & {
+    wakeLock?: { request: (type: "screen") => Promise<WakeLockSentinel> };
+  };
+
   const [sets, setSets] = useState(() => readSimpleSettings().sets);
   const [workSeconds, setWorkSeconds] = useState(
     () => readSimpleSettings().workSeconds
@@ -96,6 +101,7 @@ export function useHiitTimer() {
 
   const lastCountdownSpoken = useRef<number | null>(null);
   const lastPhaseAnnounced = useRef<Phase | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
   const totalWorkoutSeconds = useMemo(
     () =>
@@ -274,6 +280,56 @@ export function useHiitTimer() {
     }
     speak("Rest");
   }, [currentStep?.exerciseName, phase]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const nav = navigator as NavigatorWithWakeLock;
+    let cancelled = false;
+
+    const requestWakeLock = async () => {
+      if (wakeLockRef.current || !isRunning) return;
+      try {
+        const lock = await nav.wakeLock?.request?.("screen");
+        if (cancelled) {
+          await lock?.release?.();
+          return;
+        }
+        wakeLockRef.current = lock ?? null;
+        lock?.addEventListener?.("release", () => {
+          wakeLockRef.current = null;
+          if (document.visibilityState === "visible" && isRunning) {
+            requestWakeLock();
+          }
+        });
+      } catch {
+        // ignore unsupported or denied wake lock
+      }
+    };
+
+    const handleVisibility = () => {
+      if (
+        document.visibilityState === "visible" &&
+        isRunning &&
+        !wakeLockRef.current
+      ) {
+        requestWakeLock();
+      }
+    };
+
+    if (isRunning && nav.wakeLock?.request) {
+      requestWakeLock();
+      document.addEventListener("visibilitychange", handleVisibility);
+    }
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", handleVisibility);
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+    };
+  }, [isRunning]);
 
   const currentExerciseIndex = currentStep?.exerciseIndex ?? 0;
   const currentExercise =
