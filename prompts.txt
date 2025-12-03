@@ -35,3 +35,6 @@ There are 2 bugs:
 2. There is a console error:
 
 Add a good and easy way to change the order of the exercises in the workout edit menu using the HTML Drag and Drop API.
+
+
+In the WorkoutCalendar remove loggedClasses, and the: Logged, No log, and add there instead 2 buttons: < and >, so you can see other months.

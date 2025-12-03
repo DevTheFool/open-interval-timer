@@ -1,3 +1,5 @@
+import { useMemo, useState } from "react";
+
 type Props = {
   completedDates: Set<string>;
 };
@@ -12,27 +14,54 @@ const toDateKey = (date: Date) => {
 };
 
 export function WorkoutCalendar({ completedDates }: Props) {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  const todayKey = useMemo(() => toDateKey(new Date()), []);
+  const [view, setView] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
 
-  const firstDay = new Date(year, month, 1);
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const startOffset = (firstDay.getDay() + 6) % 7; // Monday as first day
-  const days: Array<{ date: Date; inMonth: boolean }> = [];
+  const monthDate = useMemo(
+    () => new Date(view.year, view.month, 1),
+    [view.month, view.year]
+  );
 
-  for (let i = 0; i < startOffset; i++) {
-    const d = new Date(year, month, i - startOffset + 1);
-    days.push({ date: d, inMonth: false });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    days.push({ date: new Date(year, month, d), inMonth: true });
-  }
-  let overflowDay = 1;
-  while (days.length % 7 !== 0) {
-    days.push({ date: new Date(year, month + 1, overflowDay), inMonth: false });
-    overflowDay++;
-  }
+  const days = useMemo(() => {
+    const firstDay = new Date(view.year, view.month, 1);
+    const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
+    const startOffset = (firstDay.getDay() + 6) % 7; // Monday as first day
+    const list: Array<{ date: Date; inMonth: boolean }> = [];
+
+    for (let i = 0; i < startOffset; i++) {
+      const d = new Date(view.year, view.month, i - startOffset + 1);
+      list.push({ date: d, inMonth: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      list.push({ date: new Date(view.year, view.month, d), inMonth: true });
+    }
+    let overflowDay = 1;
+    while (list.length % 7 !== 0) {
+      list.push({
+        date: new Date(view.year, view.month + 1, overflowDay),
+        inMonth: false,
+      });
+      overflowDay++;
+    }
+    return list;
+  }, [view.month, view.year]);
+
+  const changeMonth = (delta: number) => {
+    setView((prev) => {
+      const nextMonth = prev.month + delta;
+      const nextYear =
+        nextMonth < 0
+          ? prev.year - 1
+          : nextMonth > 11
+          ? prev.year + 1
+          : prev.year;
+      const normalizedMonth = (nextMonth + 12) % 12;
+      return { year: nextYear, month: normalizedMonth };
+    });
+  };
 
   return (
     <div className="rounded-3xl border border-input/40 bg-background/60 p-4 shadow-sm">
@@ -42,18 +71,27 @@ export function WorkoutCalendar({ completedDates }: Props) {
             Workout history
           </p>
           <p className="text-sm font-semibold">
-            {today.toLocaleString("default", { month: "long" })} {year}
+            {monthDate.toLocaleString("default", { month: "long" })}{" "}
+            {monthDate.getFullYear()}
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="h-3 w-3 rounded-sm bg-emerald-500/50" />
-            Logged
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="h-3 w-3 rounded-sm bg-slate-800" />
-            No log
-          </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Previous month"
+            onClick={() => changeMonth(-1)}
+            className="h-9 w-9 rounded-lg border border-input/40 bg-input/20 text-sm font-semibold transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          >
+            &lt;
+          </button>
+          <button
+            type="button"
+            aria-label="Next month"
+            onClick={() => changeMonth(1)}
+            className="h-9 w-9 rounded-lg border border-input/40 bg-input/20 text-sm font-semibold transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          >
+            &gt;
+          </button>
         </div>
       </div>
 
@@ -67,27 +105,24 @@ export function WorkoutCalendar({ completedDates }: Props) {
       <div className="grid grid-cols-7 gap-2">
         {days.map(({ date, inMonth }) => {
           const key = toDateKey(date);
-          const isToday = key === toDateKey(today);
+          const isToday = key === todayKey;
           const isLogged = completedDates.has(key);
           const baseClasses = inMonth
             ? "bg-slate-900 text-foreground border-input/40"
             : "bg-slate-900/40 text-muted-foreground border-input/20";
-          const loggedClasses = isLogged
-            ? "bg-emerald-600/40 border-emerald-500/40"
-            : "";
           const todayClasses = isToday
             ? "outline outline-1 outline-emerald-400/60"
             : "";
           return (
             <div
               key={key}
-              className={`relative aspect-square rounded-xl border p-2 text-left ${baseClasses} ${loggedClasses} ${todayClasses}`}
+              className={`relative aspect-square rounded-xl border p-2 text-left ${baseClasses} ${todayClasses}`}
             >
               <span className="absolute left-2 top-2 text-xs font-semibold">
                 {date.getDate()}
               </span>
               {isLogged && (
-                <span className="absolute bottom-1 right-1 text-lg">💪</span>
+                <span className="absolute bottom-1 right-1 text-md">💪</span>
               )}
             </div>
           );
