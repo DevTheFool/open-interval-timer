@@ -24,7 +24,7 @@ type ColumnProps = {
 
 function TimeColumn({ label, values, selected, onSelect, unit }: ColumnProps) {
   return (
-    <div className="flex h-52 flex-1 flex-col overflow-hidden rounded-2xl border border-input/40 bg-input/20">
+    <div className="flex h-72 flex-1 flex-col overflow-hidden rounded-2xl border border-input/40 bg-input/20">
       <div className="border-b border-input/30 px-3 py-2 text-center text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </div>
@@ -39,7 +39,7 @@ function TimeColumn({ label, values, selected, onSelect, unit }: ColumnProps) {
                 onClick={() => onSelect(value)}
                 className={`w-full rounded-xl px-3 py-2 text-center text-lg font-semibold tabular-nums transition ${
                   isActive
-                    ? "bg-primary/20 text-primary-foreground ring-1 ring-primary/40"
+                    ? "bg-primary/20 ring-1 ring-primary/40"
                     : "text-foreground/80 hover:bg-input/30"
                 }`}
               >
@@ -66,7 +66,7 @@ export function TimePickerSheet({
   onConfirm,
 }: Props) {
   const [seconds, setSeconds] = useState(() =>
-    clamp(initialSeconds, minSeconds, maxSeconds),
+    clamp(initialSeconds, minSeconds, maxSeconds)
   );
 
   useEffect(() => {
