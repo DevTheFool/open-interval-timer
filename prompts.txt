@@ -38,3 +38,6 @@ Add a good and easy way to change the order of the exercises in the workout edit
 
 
 In the WorkoutCalendar remove loggedClasses, and the: Logged, No log, and add there instead 2 buttons: < and >, so you can see other months.
+
+
+I want to use GitHub Pages and GitHub Actions to deploy this Bun React website, make the action workflow. Search the internet if you need to find any specifics.

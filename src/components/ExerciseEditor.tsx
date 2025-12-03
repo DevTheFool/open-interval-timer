@@ -56,7 +56,7 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
   const [workSeconds, setWorkSeconds] = useState(initial?.workSeconds ?? 30);
   const [restSeconds, setRestSeconds] = useState(initial?.restSeconds ?? 30);
   const [restLastSeconds, setRestLastSeconds] = useState(
-    initial?.restLastSeconds ?? 0,
+    initial?.restLastSeconds ?? 0
   );
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
     current: number,
     delta: number,
     min: number,
-    max: number,
+    max: number
   ) => setter(clamp(current + delta, min, max));
 
   return (
@@ -114,7 +114,7 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
           )}
         </div>
 
-        <div className="space-y-3 rounded-3xl border border-input/40 bg-background/80 p-4 shadow-sm backdrop-blur">
+        <div className="flex gap-2 flex-col rounded-3xl border border-input/40 bg-background/80 p-4 shadow-sm backdrop-blur">
           <label className="text-sm font-semibold text-muted-foreground">
             Exercise name
           </label>
@@ -167,7 +167,7 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
                         value,
                         -control.step,
                         control.min,
-                        control.max,
+                        control.max
                       )
                     }
                   >
@@ -188,7 +188,7 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
                         value,
                         control.step,
                         control.min,
-                        control.max,
+                        control.max
                       )
                     }
                   >
@@ -200,7 +200,10 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
           })}
         </div>
 
-        <Button className="h-12 rounded-xl text-base font-semibold" onClick={handleSave}>
+        <Button
+          className="h-12 rounded-xl text-base font-semibold"
+          onClick={handleSave}
+        >
           Save exercise
         </Button>
       </div>

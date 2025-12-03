@@ -57,7 +57,7 @@ export function WorkoutEditor({
           </div>
         </div>
 
-        <div className="space-y-3 rounded-3xl border border-input/40 bg-background/80 p-4 shadow-sm backdrop-blur">
+        <div className="flex gap-2 flex-col rounded-3xl border border-input/40 bg-background/80 p-4 shadow-sm backdrop-blur">
           <label className="text-sm font-semibold text-muted-foreground">
             Workout name
           </label>
