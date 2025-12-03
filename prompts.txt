@@ -41,3 +41,6 @@ In the WorkoutCalendar remove loggedClasses, and the: Logged, No log, and add th
 
 
 I want to use GitHub Pages and GitHub Actions to deploy this Bun React website, make the action workflow. Search the internet if you need to find any specifics.
+
+
+I want you to add a popup mobile like, scrollable time picker when clicking directly on the time and not the - or + buttons, for Work, Rest, etc. And the time I want to be shown in mins and seconds separately not just seconds. Think hard before making any changes because this is not quite that easy.

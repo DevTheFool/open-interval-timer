@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { TimePickerSheet } from "@/components/TimePickerSheet";
 import { Button } from "@/components/ui/button";
 import { clamp, createId } from "@/lib/utils";
 import type { ExerciseConfig } from "@/types";
@@ -20,6 +21,7 @@ const controlList = [
     subtitle: "Work bouts",
     min: 1,
     max: 50,
+    isTime: false,
   },
   {
     key: "work",
@@ -28,7 +30,8 @@ const controlList = [
     suffix: "s",
     subtitle: "Push hard",
     min: 5,
-    max: 3600,
+    max: 3659,
+    isTime: true,
   },
   {
     key: "rest",
@@ -37,7 +40,8 @@ const controlList = [
     suffix: "s",
     subtitle: "Between sets",
     min: 0,
-    max: 3600,
+    max: 3659,
+    isTime: true,
   },
   {
     key: "restLast",
@@ -46,7 +50,8 @@ const controlList = [
     suffix: "s",
     subtitle: "After final set",
     min: 0,
-    max: 3600,
+    max: 3659,
+    isTime: true,
   },
 ] as const;
 
@@ -58,6 +63,12 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
   const [restLastSeconds, setRestLastSeconds] = useState(
     initial?.restLastSeconds ?? 0
   );
+  const [picker, setPicker] = useState<{
+    field: "work" | "rest" | "restLast";
+    value: number;
+    min: number;
+    max: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!initial) return;
@@ -88,6 +99,21 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
     min: number,
     max: number
   ) => setter(clamp(current + delta, min, max));
+
+  const openPicker = (
+    field: "work" | "rest" | "restLast",
+    value: number,
+    min: number,
+    max: number
+  ) => setPicker({ field, value, min, max });
+
+  const handleConfirmPicker = (value: number) => {
+    if (!picker) return;
+    if (picker.field === "work") setWorkSeconds(value);
+    if (picker.field === "rest") setRestSeconds(value);
+    if (picker.field === "restLast") setRestLastSeconds(value);
+    setPicker(null);
+  };
 
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-slate-950 via-slate-900 to-black text-foreground">
@@ -144,6 +170,8 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
                 : control.key === "rest"
                 ? setRestSeconds
                 : setRestLastSeconds;
+            const minutes = Math.floor(value / 60);
+            const seconds = value % 60;
             return (
               <div
                 key={control.key}
@@ -173,11 +201,49 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
                   >
                     -
                   </Button>
-                  <div className="min-w-[72px] rounded-xl bg-background px-4 py-2 text-center text-lg font-semibold tabular-nums">
-                    {value}
-                    <span className="ml-1 text-xs font-medium text-muted-foreground">
-                      {control.suffix}
-                    </span>
+                  <div
+                    role={control.isTime ? "button" : undefined}
+                    tabIndex={control.isTime ? 0 : -1}
+                    onClick={() => {
+                      if (!control.isTime) return;
+                      openPicker(
+                        control.key as "work" | "rest" | "restLast",
+                        value,
+                        control.min,
+                        control.max
+                      );
+                    }}
+                    onKeyDown={(e) => {
+                      if (
+                        control.isTime &&
+                        (e.key === "Enter" || e.key === " ")
+                      ) {
+                        e.preventDefault();
+                        openPicker(
+                          control.key as "work" | "rest" | "restLast",
+                          value,
+                          control.min,
+                          control.max
+                        );
+                      }
+                    }}
+                    className="min-w-[110px] rounded-xl bg-background px-4 py-2 text-center text-lg font-semibold tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  >
+                    {control.isTime ? (
+                      <div className="flex items-center justify-center gap-1">
+                        <span>{minutes}m</span>
+                        <span className="text-muted-foreground">
+                          {seconds.toString().padStart(2, "0")}s
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        {value}
+                        <span className="ml-1 text-xs font-medium text-muted-foreground">
+                          {control.suffix}
+                        </span>
+                      </>
+                    )}
                   </div>
                   <Button
                     variant="outline"
@@ -206,6 +272,21 @@ export function ExerciseEditor({ initial, onSave, onDelete, onBack }: Props) {
         >
           Save exercise
         </Button>
+        <TimePickerSheet
+          open={Boolean(picker)}
+          title={
+            picker?.field === "work"
+              ? "Work duration"
+              : picker?.field === "rest"
+              ? "Rest duration"
+              : "Rest (last)"
+          }
+          initialSeconds={picker?.value ?? 0}
+          minSeconds={picker?.min ?? 0}
+          maxSeconds={picker?.max ?? 3600}
+          onClose={() => setPicker(null)}
+          onConfirm={handleConfirmPicker}
+        />
       </div>
     </div>
   );

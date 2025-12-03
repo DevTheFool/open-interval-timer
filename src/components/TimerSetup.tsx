@@ -1,3 +1,6 @@
+import { useState } from "react";
+
+import { TimePickerSheet } from "@/components/TimePickerSheet";
 import { Button } from "@/components/ui/button";
 import { WorkoutCalendar } from "@/components/WorkoutCalendar";
 import { formatSeconds, workoutDuration } from "@/lib/utils";
@@ -28,14 +31,29 @@ const controlList = [
     subtitle: "Total work cycles",
     suffix: "x",
     step: 1,
+    min: 1,
+    max: 20,
+    isTime: false,
   },
-  { key: "work", label: "Work", subtitle: "Push hard", suffix: "s", step: 5 },
+  {
+    key: "work",
+    label: "Work",
+    subtitle: "Push hard",
+    suffix: "s",
+    step: 5,
+    min: 5,
+    max: 3659,
+    isTime: true,
+  },
   {
     key: "rest",
     label: "Rest",
     subtitle: "Between sets",
     suffix: "s",
     step: 5,
+    min: 0,
+    max: 3659,
+    isTime: true,
   },
 ] as const;
 
@@ -56,11 +74,32 @@ export function TimerSetup({
   onEditWorkout,
   onCreateWorkout,
 }: Props) {
+  const [picker, setPicker] = useState<{
+    field: "work" | "rest";
+    value: number;
+    min: number;
+    max: number;
+  } | null>(null);
+
   const adjustSeconds = (
     setter: (v: number) => void,
     current: number,
     delta: number
   ) => setter(current + delta);
+
+  const openPicker = (
+    field: "work" | "rest",
+    value: number,
+    min: number,
+    max: number
+  ) => setPicker({ field, value, min, max });
+
+  const handleConfirmPicker = (value: number) => {
+    if (!picker) return;
+    if (picker.field === "work") setWorkSeconds(value);
+    if (picker.field === "rest") setRestSeconds(value);
+    setPicker(null);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black text-foreground">
@@ -80,6 +119,8 @@ export function TimerSetup({
                   : control.key === "work"
                   ? setWorkSeconds
                   : setRestSeconds;
+              const minutes = Math.floor(value / 60);
+              const seconds = value % 60;
               return (
                 <div
                   key={control.key}
@@ -101,11 +142,49 @@ export function TimerSetup({
                     >
                       -
                     </Button>
-                    <div className="min-w-[72px] rounded-xl bg-background px-4 py-2 text-center text-lg font-semibold tabular-nums">
-                      {value}
-                      <span className="ml-1 text-xs font-medium text-muted-foreground">
-                        {control.suffix}
-                      </span>
+                    <div
+                      role={control.isTime ? "button" : undefined}
+                      tabIndex={control.isTime ? 0 : -1}
+                      onClick={() => {
+                        if (!control.isTime) return;
+                        openPicker(
+                          control.key as "work" | "rest",
+                          value,
+                          control.min,
+                          control.max
+                        );
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          control.isTime &&
+                          (e.key === "Enter" || e.key === " ")
+                        ) {
+                          e.preventDefault();
+                          openPicker(
+                            control.key as "work" | "rest",
+                            value,
+                            control.min,
+                            control.max
+                          );
+                        }
+                      }}
+                      className="min-w-[110px] rounded-xl bg-background px-4 py-2 text-center text-lg font-semibold tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                    >
+                      {control.isTime ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <span>{minutes}m</span>
+                          <span className="text-muted-foreground">
+                            {seconds.toString().padStart(2, "0")}s
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          {value}
+                          <span className="ml-1 text-xs font-medium text-muted-foreground">
+                            {control.suffix}
+                          </span>
+                        </>
+                      )}
                     </div>
                     <Button
                       variant="outline"
@@ -212,6 +291,21 @@ export function TimerSetup({
 
         <WorkoutCalendar completedDates={completedDates} />
       </main>
+      <TimePickerSheet
+        open={Boolean(picker)}
+        title={
+          picker?.field === "work"
+            ? "Work duration"
+            : picker?.field === "rest"
+            ? "Rest duration"
+            : "Set time"
+        }
+        initialSeconds={picker?.value ?? 0}
+        minSeconds={picker?.min ?? 0}
+        maxSeconds={picker?.max ?? 600}
+        onClose={() => setPicker(null)}
+        onConfirm={handleConfirmPicker}
+      />
     </div>
   );
 }
