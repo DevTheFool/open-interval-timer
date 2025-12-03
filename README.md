@@ -2,6 +2,10 @@
 
 Every interval timer I found was either filled with ads or the UI was garbage, so I vibe coded this app real fast so I can use it myself. I may add some things if I found myself needing them, but not sure if I will spend more time on it. Feel free to continue the vibe :) 
 
+You can use it from here: [timer.devthefool.com](https://timer.devthefool.com/)
+
+On mobile with any browser you can add it to desktop/home. Open the site and just press the 3 dots and "Add to Home screen"
+
 To install dependencies:
 
 ```bash
