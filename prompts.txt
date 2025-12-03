@@ -48,3 +48,4 @@ I want you to add a popup mobile like, scrollable time picker when clicking dire
 make the max time be 60m 59s and make the s be incremented by 1 in the timepickersheet
 make it so when I click outside after selecting a time, it as if I click done not cancel
 remove the top: cancel, Rest duration, Done. and make it take a bit more of the screen
+make it so when I go back after opening the timerpicker it will just close it

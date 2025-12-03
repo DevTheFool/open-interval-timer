@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { clamp } from "@/lib/utils";
 
@@ -65,6 +65,8 @@ export function TimePickerSheet({
   onClose,
   onConfirm,
 }: Props) {
+  const markerRef = useRef<string | null>(null);
+  const closingRef = useRef(false);
   const [seconds, setSeconds] = useState(() =>
     clamp(initialSeconds, minSeconds, maxSeconds)
   );
@@ -73,6 +75,36 @@ export function TimePickerSheet({
     if (!open) return;
     setSeconds(clamp(initialSeconds, minSeconds, maxSeconds));
   }, [initialSeconds, minSeconds, maxSeconds, open]);
+
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return;
+    const id = `timepicker-${Date.now()}`;
+    markerRef.current = id;
+    history.pushState({ ...history.state, __timePicker: id }, "");
+
+    const handlePop = () => {
+      if (markerRef.current !== id) return;
+      markerRef.current = null;
+      if (closingRef.current) {
+        closingRef.current = false;
+        return;
+      }
+      onClose();
+    };
+
+    window.addEventListener("popstate", handlePop);
+    return () => {
+      window.removeEventListener("popstate", handlePop);
+      if (markerRef.current === id) {
+        markerRef.current = null;
+        if (!closingRef.current) {
+          history.back();
+        } else {
+          closingRef.current = false;
+        }
+      }
+    };
+  }, [onClose, open]);
 
   const minutesOptions = useMemo(() => {
     const maxMinutes = Math.floor(maxSeconds / 60);
@@ -89,6 +121,10 @@ export function TimePickerSheet({
 
   const handleDone = () => {
     onConfirm(seconds);
+    if (markerRef.current && typeof window !== "undefined") {
+      closingRef.current = true;
+      history.back();
+    }
   };
 
   if (!open) return null;
